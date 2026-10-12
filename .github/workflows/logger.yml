@@ -21,7 +21,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install python-socketio websocket-client
+          pip install requests
 
       - name: Run logger script
         run: |
@@ -34,3 +34,4 @@ jobs:
           git add occupancy_log.csv
           git commit -m "Auto-update occupancy log [skip ci]" || exit 0
           git push
+
