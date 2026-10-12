@@ -30,8 +30,14 @@ def on_spaceupdate(data):
 
 def log_data():
     try:
-        sio.connect('https://app.safespace.io', socketio_path='/veart/socket.io', timeout=5)
-        time.sleep(3)
+        sio.connect('https://app.safespace.io', socketio_path='/veart/socket.io', timeout=10)
+        
+        # Wait up to 10 seconds for the server to return occupancy data
+        for _ in range(20):
+            if occupants is not None:
+                break
+            time.sleep(0.5)
+            
         sio.disconnect()
     except Exception as e:
         print(f"Connection error: {e}")
