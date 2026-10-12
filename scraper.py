@@ -4,6 +4,7 @@ import json
 import time
 import re
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import requests
 
 SPACE_ID = "86fb9e11-6795-4e98-ac36-67262d509fc6"
@@ -43,7 +44,6 @@ def log_data():
     }
     
     try:
-        # Step 1: Engine.IO Handshake
         res = session.get(f"{BASE_URL}?EIO=3&transport=polling", headers=headers, timeout=10)
         sid_match = re.search(r'"sid":"([^"]+)"', res.text)
         if not sid_match:
@@ -52,7 +52,6 @@ def log_data():
         
         sid = sid_match.group(1)
         
-        # Step 2: Send subscription messages
         msg1 = json.dumps(["manualoccupancy:subscribe", SPACE_ID])
         msg2 = json.dumps(["manualoccupancy:spaceupdate-subscribe", SPACE_ID])
         p1, p2 = f"42{msg1}", f"42{msg2}"
@@ -60,7 +59,6 @@ def log_data():
         
         session.post(f"{BASE_URL}?EIO=3&transport=polling&sid={sid}", data=payload, headers=headers, timeout=10)
         
-        # Step 3: Poll for live occupancy data
         for _ in range(5):
             poll_res = session.get(f"{BASE_URL}?EIO=3&transport=polling&sid={sid}", headers=headers, timeout=10)
             p_text = poll_res.text
@@ -81,7 +79,9 @@ def log_data():
     except Exception as e:
         print(f"Error fetching data: {e}")
 
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # Set to your local timezone (e.g. 'America/New_York', 'America/Chicago', 'America/Los_Angeles')
+    local_tz = ZoneInfo("America/New_York")
+    timestamp = datetime.now(local_tz).strftime("%Y-%m-%d %H:%M:%S")
     
     if occupants is not None:
         pct = round((occupants / max_capacity) * 100, 1)
